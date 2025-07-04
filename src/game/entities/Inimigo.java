@@ -1,7 +1,5 @@
 package game.entities;
-
-import game.GameLib;
-import java.awt.Color;
+import java.util.ArrayList;
 
 public abstract class Inimigo extends Entidade {
 
@@ -10,25 +8,24 @@ public abstract class Inimigo extends Entidade {
     protected double velocidadeRotacao;
     protected long proximoTiro;
 
-    public Inimigo(double x, double y, double raio, double velocidade, double angulo, double velocidadeRotacao) {
+    public Inimigo(double x, double y, double raio, double velocidade) {
         super(x, y, raio);
         this.velocidade = velocidade;
-        this.angulo = angulo;
-        this.velocidadeRotacao = velocidadeRotacao;
+        this.angulo = (3 * Math.PI) / 2; // Apontando para baixo
+        this.velocidadeRotacao = 0.0;
         this.proximoTiro = 0;
     }
 
-    public long getProximoTiro() {
-        return proximoTiro;
+    @Override
+    public void explodir(long tempoAtual) {
+        super.explodir(tempoAtual);
+        // Duração específica para inimigos
+        this.fimExplosao = tempoAtual + 500;
     }
 
-    public void setProximoTiro(long proximoTiro) {
-        this.proximoTiro = proximoTiro;
-    }
+    public abstract void atirar(long tempoAtual, ArrayList<ProjetilInimigo> projeteis);
 
-    public double getAngulo() {
-        return angulo;
+    protected boolean podeAtirar(long tempoAtual) {
+        return estado == ATIVA && tempoAtual > proximoTiro;
     }
 }
-
-

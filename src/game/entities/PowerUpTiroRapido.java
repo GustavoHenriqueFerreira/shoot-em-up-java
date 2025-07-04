@@ -1,34 +1,27 @@
 package game.entities;
-
-import game.GameLib;
 import java.awt.Color;
+import game.GameLib;
 
 public class PowerUpTiroRapido extends PowerUp {
 
-    public PowerUpTiroRapido(double x, double y, double raio) {
-        super(x, y, raio);
+    public PowerUpTiroRapido(double x, double y) {
+        super(x, y, 8.0);
     }
 
     @Override
-    public void aplicarEfeito(Jogador jogador) {
-        jogador.setProximoTiro(jogador.getProximoTiro() - 50); // Diminui o tempo entre tiros
-        estado = INATIVA; // Desativa o power-up após o uso
-    }
-
-    @Override
-    public void desenhar(long tempoAtual) {
-        if (getEstado() == ATIVA) {
+    public void desenhar() {
+        if (estado == ATIVA) {
             GameLib.setColor(Color.ORANGE);
-            GameLib.drawDiamond(getCoordenadaX(), getCoordenadaY(), getRaio());
+            GameLib.fillRect(coordenadaX, coordenadaY, raio * 2, raio * 2);
             GameLib.setColor(Color.WHITE);
-            GameLib.drawLine(getCoordenadaX() - getRaio() / 2, getCoordenadaY(), getCoordenadaX() + getRaio() / 2, getCoordenadaY());
-            GameLib.drawLine(getCoordenadaX() - getRaio() / 2, getCoordenadaY() - getRaio() / 4, getCoordenadaX() + getRaio() / 2, getCoordenadaY() - getRaio() / 4);
-            GameLib.drawLine(getCoordenadaX() - getRaio() / 2, getCoordenadaY() + getRaio() / 4, getCoordenadaX() + getRaio() / 2, getCoordenadaY() + getRaio() / 4);
-        } else if (getEstado() == EXPLODINDO) {
-            double alpha = (tempoAtual - getInicioExplosao()) / (getFimExplosao() - getInicioExplosao());
-            GameLib.drawExplosion(getCoordenadaX(), getCoordenadaY(), alpha);
+            GameLib.drawLine(coordenadaX - 3, coordenadaY, coordenadaX + 3, coordenadaY);
+            GameLib.drawLine(coordenadaX, coordenadaY - 3, coordenadaX, coordenadaY + 3);
         }
     }
+
+    @Override
+    public void aplicarEfeito(Jogador jogador, long tempoAtual) {
+        jogador.ativarTiroRapido(tempoAtual);
+        estado = INATIVA;
+    }
 }
-
-

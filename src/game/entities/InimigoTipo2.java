@@ -1,66 +1,87 @@
 package game.entities;
-
-import game.GameLib;
 import java.awt.Color;
+import java.util.ArrayList;
+import game.GameLib;
 
 public class InimigoTipo2 extends Inimigo {
 
-    private double spawnX;
-    private int estadoMovimento; // 0: descendo, 1: movendo horizontalmente
+    private boolean jaAtirou;
 
-    public InimigoTipo2(double x, double y, double raio, double velocidade, double angulo, double velocidadeRotacao, double spawnX, int estadoMovimento) {
-        super(x, y, raio, velocidade, angulo, velocidadeRotacao);
-        this.spawnX = spawnX;
-        this.estadoMovimento = estadoMovimento;
+    public InimigoTipo2(double x, double y) {
+        super(x, y, 12.0, 0.42);
+        this.jaAtirou = false;
     }
 
     @Override
     public void atualizar(long delta, long tempoAtual) {
-        if (getEstado() == ATIVA) {
-            if (estadoMovimento == 0) {
-                // Movimento inicial de descida
-                coordenadaY += velocidade * delta;
-                if (coordenadaY >= GameLib.HEIGHT * 0.25) {
-                    estadoMovimento = 1; // Mudar para movimento horizontal
-                }
-            } else if (estadoMovimento == 1) {
-                // Movimento horizontal em zigue-zague
-                coordenadaX += velocidade * Math.cos(angulo) * delta;
-                angulo += velocidadeRotacao * delta;
+        if (estado == EXPLODINDO) {
+            if (tempoAtual > fimExplosao) {
+                estado = INATIVA;
+            }
+        } else if (estado == ATIVA) {
+            boolean atirarAgora = false;
+            double yAnterior = coordenadaY;
 
-                // Inverte a direção se atingir as bordas
-                if (coordenadaX <= 0 || coordenadaX >= GameLib.WIDTH) {
-                    velocidade *= -1; // Inverte a direção horizontal
-                }
+            // Movimento
+            coordenadaX += velocidade * Math.cos(angulo) * delta;
+            coordenadaY += velocidade * Math.sin(angulo) * delta * (-1.0);
+            angulo += velocidadeRotacao * delta;
+
+            double limite = GameLib.HEIGHT * 0.30;
+
+            if (yAnterior < limite && coordenadaY >= limite) {
+                if (coordenadaX < GameLib.WIDTH / 2) velocidadeRotacao = 0.003;
+                else velocidadeRotacao = -0.003;
             }
 
-            // Lógica de tiro
-            if (tempoAtual > getProximoTiro() && coordenadaY < GameLib.HEIGHT * 0.90) {
-                setProximoTiro((long) (tempoAtual + 700 + Math.random() * 300));
+            if (velocidadeRotacao > 0 && Math.abs(angulo - 3 * Math.PI) < 0.05) {
+                velocidadeRotacao = 0.0;
+                angulo = 3 * Math.PI;
+                atirarAgora = true;
             }
 
-            // Verificando se inimigo saiu da tela (após o movimento horizontal)
-            if (coordenadaY > GameLib.HEIGHT + 10) {
+            if (velocidadeRotacao < 0 && Math.abs(angulo) < 0.05) {
+                velocidadeRotacao = 0.0;
+                angulo = 0.0;
+                atirarAgora = true;
+            }
+
+            // Verificar se saiu da tela
+            if (coordenadaX < -10 || coordenadaX > GameLib.WIDTH + 10) {
                 estado = INATIVA;
             }
 
-        } else if (getEstado() == EXPLODINDO) {
-            if (explosaoFinalizada(tempoAtual)) {
-                estado = INATIVA;
+            if (atirarAgora && !jaAtirou) {
+                jaAtirou = true;
             }
         }
     }
 
     @Override
-    public void desenhar(long tempoAtual) {
-        if (getEstado() == ATIVA) {
+    public void desenhar() {
+        if (estado == EXPLODINDO) {
+            double alpha = (System.currentTimeMillis() - inicioExplosao) / (fimExplosao - inicioExplosao);
+            GameLib.drawExplosion(coordenadaX, coordenadaY, alpha);
+        } else if (estado == ATIVA) {
             GameLib.setColor(Color.MAGENTA);
-            GameLib.drawDiamond(getCoordenadaX(), getCoordenadaY(), getRaio());
-        } else if (getEstado() == EXPLODINDO) {
-            double alpha = (tempoAtual - getInicioExplosao()) / (getFimExplosao() - getInicioExplosao());
-            GameLib.drawExplosion(getCoordenadaX(), getCoordenadaY(), alpha);
+            GameLib.drawDiamond(coordenadaX, coordenadaY, raio);
+        }
+    }
+
+    @Override
+    public void atirar(long tempoAtual, ArrayList<ProjetilInimigo> projeteis) {
+        if (jaAtirou) {
+            double[] angulos = { Math.PI/2 + Math.PI/8, Math.PI/2, Math.PI/2 - Math.PI/8 };
+
+            for (double a : angulos) {
+                double anguloFinal = a + Math.random() * Math.PI/6 - Math.PI/12;
+                double vx = Math.cos(anguloFinal) * 0.30;
+                double vy = Math.sin(anguloFinal) * 0.30;
+
+                projeteis.add(new ProjetilInimigo(coordenadaX, coordenadaY, vx, vy));
+            }
+
+            jaAtirou = false; // Reset para próxima oportunidade
         }
     }
 }
-
-

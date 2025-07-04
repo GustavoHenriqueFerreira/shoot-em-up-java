@@ -1,4 +1,0 @@
-playerLives=3
-numPhases=1
-phase1_config.txt
-

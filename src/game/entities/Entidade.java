@@ -1,12 +1,8 @@
 package game.entities;
 
-import game.GameLib; 
-import java.awt.Color;
-
 public abstract class Entidade {
 
     // Constantes para os estados da entidade
-    // Movidas para cá para maior encapsulamento e independência de Main.java
     public static final int INATIVA = 0;
     public static final int ATIVA = 1;
     public static final int EXPLODINDO = 2;
@@ -51,7 +47,7 @@ public abstract class Entidade {
      * Método abstrato para desenhar a entidade na tela.
      * Cada subclasse deverá implementar sua própria lógica de desenho.
      */
-    public abstract void desenhar(long tempoAtual);
+    public abstract void desenhar();
 
     /**
      * Verifica se esta entidade está colidindo com outra entidade circular.
@@ -72,7 +68,7 @@ public abstract class Entidade {
         double distancia = Math.sqrt(dx * dx + dy * dy);
 
         // Colisão ocorre se a distância entre os centros for menor que a soma dos raios
-        // O fator 0.8 é um ajuste de sensibilidade da colisão (pode ser ajustado)
+        // O fator 0.8 é um ajuste de sensibilidade da colisão
         return distancia < (this.raio + outroRaio) * 0.8;
     }
 
@@ -100,7 +96,7 @@ public abstract class Entidade {
     }
 
     /**
-     * Desativa a entidade, mudando seu estado para INATIVA.
+     * Desativa a entidade, mudando o seu estado para INATIVA.
      * Isso geralmente ocorre quando a entidade sai da tela ou é destruída.
      */
     public void desativar() {
@@ -132,5 +128,4 @@ public abstract class Entidade {
         return fimExplosao;
     }
 }
-
 
