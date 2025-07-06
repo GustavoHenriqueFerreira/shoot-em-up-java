@@ -3,7 +3,7 @@ package game.entities;
 import java.awt.Color;
 import game.GameLib;
 
-public class Background {
+public class Fundo {
 
     private double[] estrelas1X;
     private double[] estrelas1Y;
@@ -15,7 +15,7 @@ public class Background {
     private double velocidade2;
     private double contador2;
 
-    public Background() {
+    public Fundo() {
         // Estrelas do fundo distante
         estrelas1X = new double[50];
         estrelas1Y = new double[50];
