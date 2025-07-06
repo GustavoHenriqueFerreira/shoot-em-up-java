@@ -24,6 +24,11 @@ public class GameManager {
     private long inicioFase;
     private boolean faseCompleta;
 
+    // Eventos pendentes da fase atual
+    private ArrayList<ConfiguracaoFase.EventoInimigo> eventosInimigosPendentes;
+    private ArrayList<ConfiguracaoFase.EventoPowerUp> eventosPowerUpsPendentes;
+    private ArrayList<ConfiguracaoFase.EventoChefe> eventosChefesPendentes;
+
     // Spawn de inimigos normais
     private long proximoInimigo1;
     private long proximoInimigo2;
@@ -135,6 +140,18 @@ public class GameManager {
         powerUps.clear();
         projeteisInimigo.clear();
 
+        // Reiniciar controle de spawn
+        proximoInimigo1 = System.currentTimeMillis() + 2000;
+        proximoInimigo2 = System.currentTimeMillis() + 7000;
+        spawnXInimigo2 = GameLib.WIDTH * 0.20;
+        contadorInimigo2 = 0;
+
+        // Clonar eventos da fase
+        ConfiguracaoFase config = configuracoesFases.get(faseAtual);
+        eventosInimigosPendentes = new ArrayList<>(config.getEventosInimigos());
+        eventosPowerUpsPendentes = new ArrayList<>(config.getEventosPowerUps());
+        eventosChefesPendentes = new ArrayList<>(config.getEventosChefes());
+
         System.out.println("Iniciando fase " + (faseAtual + 1));
     }
 
@@ -176,11 +193,10 @@ public class GameManager {
     }
 
     private void processarEventosFase(long tempoAtual) {
-        ConfiguracaoFase config = configuracoesFases.get(faseAtual);
         long tempoFase = tempoAtual - inicioFase;
 
         // Processar spawns de inimigos
-        Iterator<ConfiguracaoFase.EventoInimigo> itInimigos = config.getEventosInimigos().iterator();
+        Iterator<ConfiguracaoFase.EventoInimigo> itInimigos = eventosInimigosPendentes.iterator();
         while (itInimigos.hasNext()) {
             ConfiguracaoFase.EventoInimigo evento = itInimigos.next();
             if (tempoFase >= evento.quando) {
@@ -190,7 +206,7 @@ public class GameManager {
         }
 
         // Processar spawns de power-ups
-        Iterator<ConfiguracaoFase.EventoPowerUp> itPowerUps = config.getEventosPowerUps().iterator();
+        Iterator<ConfiguracaoFase.EventoPowerUp> itPowerUps = eventosPowerUpsPendentes.iterator();
         while (itPowerUps.hasNext()) {
             ConfiguracaoFase.EventoPowerUp evento = itPowerUps.next();
             if (tempoFase >= evento.quando) {
@@ -200,7 +216,7 @@ public class GameManager {
         }
 
         // Processar spawns de chefes
-        Iterator<ConfiguracaoFase.EventoChefe> itChefes = config.getEventosChefes().iterator();
+        Iterator<ConfiguracaoFase.EventoChefe> itChefes = eventosChefesPendentes.iterator();
         while (itChefes.hasNext()) {
             ConfiguracaoFase.EventoChefe evento = itChefes.next();
             if (tempoFase >= evento.quando) {
@@ -364,19 +380,19 @@ public class GameManager {
     private void verificarFaseCompleta(long tempoAtual) {
         if (faseCompleta) return;
 
-        // Fase completa quando todos os chefes foram derrotados
-        boolean todosChefesDerrota = true;
+        boolean todosChefesDerrotados = true;
         for (Chefe chefe : chefes) {
             if (chefe.getEstado() == Entidade.ATIVA || chefe.getEstado() == Entidade.EXPLODINDO) {
-                todosChefesDerrota = false;
+                todosChefesDerrotados = false;
                 break;
             }
         }
 
-        if (todosChefesDerrota && !chefes.isEmpty()) {
+        boolean todosChefesSpawnados = eventosChefesPendentes.isEmpty();
+
+        if (todosChefesDerrotados && todosChefesSpawnados) {
             faseCompleta = true;
 
-            // Avançar para próxima fase
             if (faseAtual + 1 < totalFases) {
                 iniciarFase(faseAtual + 1);
             } else {
