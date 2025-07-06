@@ -1,6 +1,6 @@
 Shoot 'em Up Java
 
-Este é um jogo simples de "Shoot 'em Up" desenvolvido em Java.
+Este é um jogo de "Shoot 'em Up" desenvolvido em Java.
 
 Como Rodar o Projeto
 
