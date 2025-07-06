@@ -113,12 +113,19 @@ public class MainSimples {
         boolean entered = false;
         int type;
         double direction = 1;
+        double velocidade; 
+        boolean faseDoisAtivada = false;
+        long nextPulseShot = 0; // <--- ADICIONE
+        long pulseShotDelay = 2200;
+        long shotDelay;
 
         Boss(double x, double y, int health, int type) {
             super(x, y, type == 1 ? 25.0 : 30.0);
             this.health = health;
             this.maxHealth = health;
             this.type = type;
+            this.velocidade = (type == 1) ? 0.15 : 0.20; // Aumentando a vel. base do Chefe 2
+            this.shotDelay = (type == 1) ? 1000 : 1200; // Chefe 2 já começa atirando mais rápido
         }
 
         void update(long delta, long currentTime) {
@@ -130,20 +137,32 @@ public class MainSimples {
             }
 
             if (state == ACTIVE) {
+                // --- INÍCIO DO NOVO BLOCO DE FASE 2 ---
+                double vidaPercentual = (double) health / maxHealth;
+                if (vidaPercentual <= 0.5 && !faseDoisAtivada) {
+                    System.out.println("CHEFE DE TESTE ENTROU NA FASE 2!");
+                    faseDoisAtivada = true;
+                    this.velocidade *= 1.5; // Aumenta a velocidade em 50%
+                    this.shotDelay *= 0.4; // Reduz o delay do tiro principal em 60%
+                    this.pulseShotDelay *= 0.6; // Reduz o delay do novo ataque em 40%
+                }
+                // --- FIM DO NOVO BLOCO DE FASE 2 ---
+
                 if (!entered) {
-                    y += 0.1 * delta;
+                    y += 0.1 * delta; // Velocidade de entrada pode ser mantida fixa
                     if (y >= 100) entered = true;
                 } else {
                     // Movimento específico por tipo
                     if (type == 1) {
                         // Chefe tipo 1: movimento lateral
-                        x += direction * 0.15 * delta;
+                        x += direction * this.velocidade * delta; // <--- MUDANÇA AQUI
                         if (x <= radius || x >= GameLib.WIDTH - radius) {
                             direction *= -1;
                         }
                     } else {
                         // Chefe tipo 2: movimento circular
-                        double angle = currentTime * 0.001;
+                        // A velocidade aqui afeta a rotação
+                        double angle = currentTime * 0.001 * (faseDoisAtivada ? 1.5 : 1.0);
                         x = GameLib.WIDTH / 2 + Math.cos(angle) * 80;
                         y = 120 + Math.sin(angle) * 20;
                     }
@@ -185,31 +204,73 @@ public class MainSimples {
         }
 
         void shoot(long currentTime, ArrayList<Entity> enemyProjectiles) {
-            if (!entered || currentTime <= nextShot) return;
+            if (!entered) return;
 
-            if (type == 1) {
-                // Chefe 1: tiro em leque
-                double[] angles = { Math.PI/2 - Math.PI/4, Math.PI/2, Math.PI/2 + Math.PI/4 };
-                for (double angle : angles) {
-                    Entity proj = new Entity(x, y + radius, 2.0);
-                    proj.vx = Math.cos(angle) * 0.25;
-                    proj.vy = Math.sin(angle) * 0.25;
-                    enemyProjectiles.add(proj);
+            // A lógica do tiro principal é controlada pelo 'nextShot'
+            if (currentTime > nextShot) {
+                if (type == 1) {
+                    // --- ATAQUE DO CHEFE 1 ---
+                    double[] angulos;
+                    if (faseDoisAtivada) {
+                        // Leque maior na Fase 2
+                        angulos = new double[]{ 
+                            Math.PI/2 - Math.PI/4, Math.PI/2 - Math.PI/6, Math.PI/2 - Math.PI/12,
+                            Math.PI/2
+                        };
+                    } else {
+                        // Leque normal na Fase 1
+                        angulos = new double[]{ Math.PI/2 - Math.PI/4, Math.PI/2, Math.PI/2 + Math.PI/4 };
+                    }
+
+                    for (double angle : angulos) {
+                        Entity proj = new Entity(x, y + radius, 2.0);
+                        proj.vx = Math.cos(angle) * 0.25;
+                        proj.vy = Math.sin(angle) * 0.25;
+                        enemyProjectiles.add(proj);
+                    }
+                } else { // type == 2
+                    // --- ATAQUE CIRCULAR DO CHEFE 2 ---
+                    int numProjeteis = faseDoisAtivada ? 12 : 8;
+                    double velocidadeProj = faseDoisAtivada ? 0.25 : 0.2;
+
+                    for (int i = 0; i < numProjeteis; i++) {
+                        double angle = (2 * Math.PI * i) / numProjeteis;
+                        Entity proj = new Entity(x, y, 2.0);
+                        proj.vx = Math.cos(angle) * velocidadeProj;
+                        proj.vy = Math.sin(angle) * velocidadeProj;
+                        enemyProjectiles.add(proj);
+                    }
                 }
-                nextShot = currentTime + 1000;
-            } else {
-                // Chefe 2: tiro circular
-                for (int i = 0; i < 8; i++) {
-                    double angle = (2 * Math.PI * i) / 8;
-                    Entity proj = new Entity(x, y, 2.0);
-                    proj.vx = Math.cos(angle) * 0.2;
-                    proj.vy = Math.sin(angle) * 0.2;
-                    enemyProjectiles.add(proj);
+                
+                // Reseta o timer do tiro principal para ambos os chefes
+                nextShot = currentTime + this.shotDelay;
+            }
+
+            // --- LÓGICA DE ATAQUES ADICIONAIS (APENAS FASE 2, APENAS CHEFE 2) ---
+            if (faseDoisAtivada && type == 2) {
+                if (currentTime > nextPulseShot) {
+                    // Lógica do "Pulso Duplo" que já implementamos...
+                    // Anel externo lento
+                    for (int i = 0; i < 12; i++) {
+                        double angle = (2 * Math.PI * i) / 12;
+                        Entity proj = new Entity(x, y, 3.0);
+                        proj.vx = Math.cos(angle) * 0.18;
+                        proj.vy = Math.sin(angle) * 0.18;
+                        enemyProjectiles.add(proj);
+                    }
+                    // Anel interno rápido
+                    for (int i = 0; i < 8; i++) {
+                        double angle = (2 * Math.PI * i) / 8 + 0.2;
+                        Entity proj = new Entity(x, y, 2.0);
+                        proj.vx = Math.cos(angle) * 0.35;
+                        proj.vy = Math.sin(angle) * 0.35;
+                        enemyProjectiles.add(proj);
+                    }
+                    nextPulseShot = currentTime + this.pulseShotDelay;
                 }
-                nextShot = currentTime + 2000;
             }
         }
-
+        
         void takeDamage() {
             if (state == ACTIVE) {
                 health--;
@@ -244,67 +305,62 @@ public class MainSimples {
         }
     }
 
-    public static void busyWait(long time) {
-        while(System.currentTimeMillis() < time) Thread.yield();
-    }
-
     public static void main(String[] args) {
         boolean running = true;
-        long delta;
-        long currentTime = System.currentTimeMillis();
 
-        // Jogador
+        // --- INICIALIZAÇÃO ---
         Player player = new Player(GameLib.WIDTH / 2, GameLib.HEIGHT * 0.90, 3);
-
-        // Listas de entidades
         ArrayList<Entity> playerProjectiles = new ArrayList<>();
         ArrayList<Entity> enemyProjectiles = new ArrayList<>();
         ArrayList<Boss> bosses = new ArrayList<>();
 
-        // Sistema de fases
+        // --- CONFIGURAÇÃO DAS FASES ---
         int currentPhase = 0;
-        long phaseStartTime = currentTime;
+        long phaseStartTime = System.currentTimeMillis();
         boolean phaseComplete = false;
-
-        // Configuração das fases
         ArrayList<PhaseConfig> phases = new ArrayList<>();
 
         // Fase 1
         PhaseConfig phase1 = new PhaseConfig();
-        phase1.addBoss(1, 10, 5000, GameLib.WIDTH / 2, -30); // Chefe tipo 1 após 5 segundos
+        phase1.addBoss(1, 150, 5000, GameLib.WIDTH / 2, -30); // Vida 150
         phases.add(phase1);
 
         // Fase 2
         PhaseConfig phase2 = new PhaseConfig();
-        phase2.addBoss(2, 15, 3000, GameLib.WIDTH / 2, -30); // Chefe tipo 2 após 3 segundos
+        phase2.addBoss(2, 250, 3000, GameLib.WIDTH / 2, -30); // Vida 250
         phases.add(phase2);
 
-        // Background
+        // --- BACKGROUND ---
         double[] bg1X = new double[20];
         double[] bg1Y = new double[20];
         double bg1Count = 0;
-
         for (int i = 0; i < bg1X.length; i++) {
             bg1X[i] = Math.random() * GameLib.WIDTH;
             bg1Y[i] = Math.random() * GameLib.HEIGHT;
         }
 
+        // --- INICIALIZAÇÃO GRÁFICA ---
         GameLib.initGraphics();
-
         System.out.println("=== TESTE DE FASES E CHEFES ===");
-        System.out.println("Fase 1: Chefe tipo 1 (vermelho, movimento lateral)");
-        System.out.println("Fase 2: Chefe tipo 2 (rosa, movimento circular)");
-        System.out.println("Use WASD para mover, CTRL para atirar, ESC para sair");
+        System.out.println("Use as setas para mover, CTRL para atirar, ESC para sair");
 
+        // --- CONTROLE DE TEMPO ---
+        long lastUpdateTime = System.currentTimeMillis();
+
+        // =================================================================================
+        // --- LOOP PRINCIPAL DO JOGO (A ÚNICA VERSÃO CORRETA) ---
+        // =================================================================================
         while (running) {
-            delta = System.currentTimeMillis() - currentTime;
-            currentTime = System.currentTimeMillis();
+            long frameStartTime = System.currentTimeMillis();
+            long delta = frameStartTime - lastUpdateTime;
+            lastUpdateTime = frameStartTime;
 
-            // Processar eventos da fase
+            // --- LÓGICA DE ATUALIZAÇÃO ---
+
+            // Spawn dos chefes
             if (currentPhase < phases.size() && !phaseComplete) {
                 PhaseConfig config = phases.get(currentPhase);
-                long phaseTime = currentTime - phaseStartTime;
-
+                long phaseTime = frameStartTime - phaseStartTime;
                 Iterator<PhaseConfig.BossSpawn> it = config.bosses.iterator();
                 while (it.hasNext()) {
                     PhaseConfig.BossSpawn spawn = it.next();
@@ -317,42 +373,39 @@ public class MainSimples {
             }
 
             // Atualizar jogador
-            player.update(delta, currentTime);
-
+            player.update(delta, frameStartTime);
             if (GameLib.iskeyPressed(GameLib.KEY_CONTROL)) {
-                player.shoot(currentTime, playerProjectiles);
+                player.shoot(frameStartTime, playerProjectiles);
             }
 
             // Atualizar projéteis do jogador
-            Iterator<Entity> projIt = playerProjectiles.iterator();
-            while (projIt.hasNext()) {
-                Entity proj = projIt.next();
+            for (Iterator<Entity> it = playerProjectiles.iterator(); it.hasNext();) {
+                Entity proj = it.next();
                 proj.y += proj.vy * delta;
-                if (proj.y < 0) {
-                    projIt.remove();
+                if (proj.y < 0 || proj.state == INACTIVE) {
+                    it.remove();
                 }
             }
 
             // Atualizar projéteis dos inimigos
-            Iterator<Entity> enemyProjIt = enemyProjectiles.iterator();
-            while (enemyProjIt.hasNext()) {
-                Entity proj = enemyProjIt.next();
+            for (Iterator<Entity> it = enemyProjectiles.iterator(); it.hasNext();) {
+                Entity proj = it.next();
                 proj.x += proj.vx * delta;
                 proj.y += proj.vy * delta;
-                if (proj.y > GameLib.HEIGHT || proj.x < 0 || proj.x > GameLib.WIDTH) {
-                    enemyProjIt.remove();
+                if (proj.y > GameLib.HEIGHT || proj.x < 0 || proj.x > GameLib.WIDTH || proj.state == INACTIVE) {
+                    it.remove();
                 }
             }
 
             // Atualizar chefes
             for (Boss boss : bosses) {
-                boss.update(delta, currentTime);
-                boss.shoot(currentTime, enemyProjectiles);
+                boss.update(delta, frameStartTime);
+                boss.shoot(frameStartTime, enemyProjectiles);
             }
 
-            // Verificar colisões
+            // --- LÓGICA DE COLISÃO ---
             if (player.state == ACTIVE) {
-                // Jogador vs projéteis inimigos
+                // Colisão Jogador vs Projéteis Inimigos
                 for (Entity proj : enemyProjectiles) {
                     if (player.isColliding(proj)) {
                         player.takeDamage();
@@ -360,8 +413,7 @@ public class MainSimples {
                         System.out.println("Jogador atingido! Vida restante: " + player.health);
                     }
                 }
-
-                // Jogador vs chefes
+                // Colisão Jogador vs Chefes
                 for (Boss boss : bosses) {
                     if (player.isColliding(boss)) {
                         player.takeDamage();
@@ -370,7 +422,7 @@ public class MainSimples {
                 }
             }
 
-            // Projéteis do jogador vs chefes
+            // Colisão Projéteis do Jogador vs Chefes
             for (Entity proj : playerProjectiles) {
                 for (Boss boss : bosses) {
                     if (proj.isColliding(boss)) {
@@ -381,89 +433,88 @@ public class MainSimples {
                 }
             }
 
-            // Remover entidades inativas
-            playerProjectiles.removeIf(p -> p.state == INACTIVE);
-            enemyProjectiles.removeIf(p -> p.state == INACTIVE);
-
+            // --- LÓGICA DE ESTADO DO JOGO ---
             // Verificar se fase foi completada
-            if (!phaseComplete) {
+            if (!phaseComplete && !bosses.isEmpty()) {
                 boolean allBossesDefeated = true;
                 for (Boss boss : bosses) {
-                    if (boss.state == ACTIVE || boss.state == EXPLODING) {
+                    if (boss.state != INACTIVE) {
                         allBossesDefeated = false;
                         break;
                     }
                 }
-
-                if (allBossesDefeated && !bosses.isEmpty()) {
+                if (allBossesDefeated) {
                     phaseComplete = true;
                     System.out.println("Fase " + (currentPhase + 1) + " completa!");
-
                     if (currentPhase + 1 < phases.size()) {
                         currentPhase++;
-                        phaseStartTime = currentTime;
+                        phaseStartTime = frameStartTime + 3000; // Pausa de 3s antes da próxima fase
                         phaseComplete = false;
                         bosses.clear();
                         enemyProjectiles.clear();
-                        System.out.println("Iniciando fase " + (currentPhase + 1));
+                        System.out.println("Iniciando fase " + (currentPhase + 1) + " em 3 segundos...");
                     } else {
                         System.out.println("Parabéns! Você completou todas as fases!");
                         running = false;
                     }
                 }
             }
-
-            // Verificar game over
+            
+            // Verificar game over e ESC
             if (player.state == INACTIVE && player.health <= 0) {
                 System.out.println("Game Over!");
                 running = false;
             }
-
             if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE)) running = false;
 
-            // Desenhar
-
-            // Background
+            // --- LÓGICA DE DESENHO ---
             GameLib.setColor(Color.GRAY);
             bg1Count += 0.07 * delta;
             for (int i = 0; i < bg1X.length; i++) {
                 GameLib.fillRect(bg1X[i], (bg1Y[i] + bg1Count) % GameLib.HEIGHT, 3, 3);
             }
-
-            // Jogador
+            
+            // Entidades
             player.draw();
-
-            // Projéteis do jogador
-            GameLib.setColor(Color.GREEN);
+            
+            GameLib.setColor(Color.GREEN); // Cor definida ANTES do loop
             for (Entity proj : playerProjectiles) {
                 GameLib.drawLine(proj.x, proj.y - 5, proj.x, proj.y + 5);
             }
-
-            // Projéteis dos inimigos
-            GameLib.setColor(Color.RED);
+            
+            GameLib.setColor(Color.RED); // Cor definida ANTES do loop
             for (Entity proj : enemyProjectiles) {
                 GameLib.drawCircle(proj.x, proj.y, proj.radius);
             }
-
-            // Chefes
+            
             for (Boss boss : bosses) {
                 boss.draw();
             }
-
+            
             // HUD
             GameLib.setColor(Color.WHITE);
             for (int i = 0; i < player.health; i++) {
                 GameLib.fillRect(20 + i * 15, GameLib.HEIGHT - 30, 10, 10);
             }
-
-            // Indicador de fase
+            
             GameLib.setColor(Color.YELLOW);
             GameLib.fillRect(GameLib.WIDTH - 100, 20, 80, 15);
-
+            
             GameLib.display();
-            busyWait(currentTime + 3);
-        }
+            
+            // --- CONTROLE DE TEMPO ROBUSTO ---
+            long frameEndTime = System.currentTimeMillis();
+            long frameDuration = frameEndTime - frameStartTime;
+            long sleepTime = 16 - frameDuration; // 16ms = ~60 FPS
 
+            if (sleepTime > 0) {
+                try {
+                    Thread.sleep(sleepTime);
+                } catch (InterruptedException e) {
+                    System.err.println("Thread de jogo interrompida.");
+                }
+            }
+        }
         System.exit(0);
     }
 }
