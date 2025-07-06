@@ -1,64 +1,48 @@
-Shoot 'em Up Java
+# Shoot 'em Up Java
 
-Este é um jogo de "Shoot 'em Up" desenvolvido em Java.
+Este é um jogo simples de "Shoot 'em Up" desenvolvido em Java.
 
-Como Rodar o Projeto
+## Como Rodar o Projeto
 
-Pré-requisitos
+### Pré-requisitos
 
 Para compilar e executar este projeto, você precisará ter o Java Development Kit (JDK) instalado em sua máquina. Recomenda-se a versão 8 ou superior.
 
-Configuração
+### Configuração
 
-1.
-Descompacte o arquivo shoot-em-up-java.zip em um diretório de sua escolha.
+1. Descompacte o arquivo `shoot-em-up-java.zip` em um diretório de sua escolha.
+2. Navegue até o diretório raiz do projeto descompactado.
 
-2.
-Navegue até o diretório raiz do projeto descompactado.
-
-Compilação
+### Compilação
 
 Para compilar o projeto, abra um terminal no diretório raiz do projeto e execute o seguinte comando:
 
-Bash
-
-
+```bash
 javac src/game/*.java src/game/entities/*.java
+```
 
-
-Execução
+### Execução
 
 Após a compilação, você pode executar o jogo com o seguinte comando, a partir do diretório raiz do projeto:
 
-Bash
-
-
+```bash
 java -cp src game.Main
+```
 
+### Controles do Jogo
 
-Controles do Jogo
+*   **Setas (Cima, Baixo, Esquerda, Direita):** Movimentação do jogador.
+*   **Control:** Disparo de projéteis.
+*   **ESC:** Sair do jogo.
 
-•
-Setas (Cima, Baixo, Esquerda, Direita): Movimentação do jogador.
+## Estrutura do Projeto
 
-•
-Control: Disparo de projéteis.
+*   `src/`: Contém o código-fonte do jogo.
+    *   `game/`: Classes principais do jogo, como `Main.java` e `GameManager.java`.
+    *   `game/entities/`: Classes que representam as entidades do jogo (jogador, inimigos, projéteis, etc.).
+*   `config/`: Arquivos de configuração do jogo (ex: `game_config.txt`, `fase1.txt`, `fase2.txt`).
 
-•
-ESC: Sair do jogo.
+## Licença
 
-Estrutura do Projeto
+Este projeto é de código aberto e está disponível sob a licença MIT. Sinta-se à vontade para usar, modificar e distribuir.
 
-•
-src/: Contém o código-fonte do jogo.
-
-•
-game/: Classes principais do jogo, como Main.java e GameManager.java.
-
-•
-game/entities/: Classes que representam as entidades do jogo (jogador, inimigos, projéteis, etc.).
-
-
-
-•
-config/: Arquivos de configuração do jogo (ex: game_config.txt, fase1.txt, fase2.txt).
