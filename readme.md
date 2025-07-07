@@ -58,13 +58,13 @@ shoot-em-up-java/
 ├── src/
 │   └── game/
 │       ├── Main.java
-│       ├── Fundo.java
-│       ├── Jogador.java
 │       ├── gerenciador/
 │       │   ├── GerenciadorJogo.java
 │       │   └── ConfiguracaoFase.java
 │       ├── entidades/
 │       │   ├── Entidade.java
+│       │   ├── Fundo.java
+│       │   ├── Jogador.java
 │       │   ├── Chefe/
 │       │   ├── Inimigo/
 │       │   ├── PowerUp/
