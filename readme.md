@@ -80,9 +80,3 @@ Os arquivos `.txt` na pasta `config/` definem:
 
 Este projeto é open-source, licenciado sob a [MIT License](https://opensource.org/licenses/MIT).  
 Sinta-se à vontade para usar, modificar e distribuir.
-
----
-
-### 💡 Dica
-
-Se desejar mover `ProjetilTeleguiado` para `entidades/Projetil/`, lembre-se de usar **getters** para acessar atributos protegidos da classe `Entidade` quando estiver em outro pacote. 😉
