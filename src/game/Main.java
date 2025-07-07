@@ -1,113 +1,71 @@
 package game;
 
-/***********************************************************************/
-/*                                                                     */
-/* Para jogar:                                                         */
-/*                                                                     */
-/*    - cima, baixo, esquerda, direita: movimentação do player.        */
-/*    - control: disparo de projéteis.                                 */
-/*    - ESC: para sair do jogo.                                        */
-/*                                                                     */
-/***********************************************************************/
+import game.gerenciador.GerenciadorJogo;
+import game.lib.GameLib;
+
+/**
+* Controles do jogo:
+*    - Cima, baixo, esquerda, direita: movimentação do jogador.
+*    - Control: disparo de projéteis.
+*    - ESC: sair do jogo.
+*/
 
 public class Main {
-
-    /* Espera, sem fazer nada, até que o instante de tempo atual seja */
-    /* maior ou igual ao instante especificado no parâmetro "time.    */
-
-    public static void busyWait(long time){
-
-        while(System.currentTimeMillis() < time) Thread.yield();
+    /**
+     * Espera ativa até que o tempo atual atinja ou ultrapasse o tempo indicado.
+     * @param tempoAlvo timestamp em milissegundos para término da espera
+     */
+    public static void esperaAtiva(long tempoAlvo) {
+        while (System.currentTimeMillis() < tempoAlvo) {
+            Thread.yield();
+        }
     }
 
-    /* Método principal */
-
-    public static void main(String [] args){
-
-        /* Indica que o jogo está em execução */
-        boolean running = true;
-
-        /* variáveis usadas no controle de tempo efetuado no main loop */
+    public static void main(String[] args) {
+        boolean executando = true;
         long delta;
-        long currentTime = System.currentTimeMillis();
+        long tempoAnterior = System.currentTimeMillis();
 
-        /* Inicializar o gerenciador do jogo */
-        GameManager gameManager = new GameManager();
+        // Inicializar o gerenciador do jogo
+        GerenciadorJogo gerenciador = new GerenciadorJogo();
 
-        /* Carregar configuração do jogo */
-        if (!gameManager.carregarConfiguracao("config/game_config.txt")) {
-            System.err.println("Erro ao carregar configuração do jogo. Usando configuração padrão.");
-            // Continuar com configuração padrão se não conseguir carregar
+        // Tenta carregar configuração externa, caso falhe, usa padrão
+        if (!gerenciador.carregarConfiguracao("config/game_config.txt")) {
+            System.err.println("Falha ao carregar configuração. Usando configuração padrão.");
         }
 
-        /* iniciado interface gráfica */
+        // Inicializa a interface gráfica
         GameLib.initGraphics();
 
-        /*************************************************************************************************/
-        /*                                                                                               */
-        /* Main loop do jogo                                                                             */
-        /* -----------------                                                                             */
-        /*                                                                                               */
-        /* O main loop do jogo executa as seguintes operações:                                           */
-        /*                                                                                               */
-        /* 1) Verifica se há colisões e atualiza estados dos elementos conforme a necessidade.           */
-        /*                                                                                               */
-        /* 2) Atualiza estados dos elementos baseados no tempo que correu entre a última atualização     */
-        /*    e o timestamp atual: posição e orientação, execução de disparos de projéteis, etc.         */
-        /*                                                                                               */
-        /* 3) Processa entrada do usuário (teclado) e atualiza estados do player conforme a necessidade. */
-        /*                                                                                               */
-        /* 4) Desenha a cena, a partir dos estados dos elementos.                                        */
-        /*                                                                                               */
-        /* 5) Espera um período de tempo (de modo que delta seja aproximadamente sempre constante).      */
-        /*                                                                                               */
-        /*************************************************************************************************/
+        // Loop principal do jogo
+        while (executando) {
+            long tempoAtual = System.currentTimeMillis();
+            delta = tempoAtual - tempoAnterior;
+            tempoAnterior = tempoAtual;
 
-        while(running){
+            // Atualiza o estado do jogo
+            gerenciador.atualizar(delta, tempoAtual);
 
-            /* Usada para atualizar o estado dos elementos do jogo    */
-            /* (player, projéteis e inimigos) "delta" indica quantos  */
-            /* ms se passaram desde a última atualização.             */
-
-            delta = System.currentTimeMillis() - currentTime;
-
-            /* Já a variável "currentTime" nos dá o timestamp atual.  */
-
-            currentTime = System.currentTimeMillis();
-
-            /* Atualizar o jogo */
-            gameManager.atualizar(delta, currentTime);
-
-            /* Verificar se o jogo terminou */
-            if (gameManager.isJogoTerminado()) {
-                System.out.println("Game Over!");
-                running = false;
-            }
-
-            if (gameManager.isJogoCompleto()) {
+            // Verifica condições de término
+            if (gerenciador.jogoTerminado()) {
+                System.out.println("Fim de jogo!");
+                executando = false;
+            } else if (gerenciador.jogoCompleto()) {
                 System.out.println("Parabéns! Você completou o jogo!");
-                running = false;
+                executando = false;
             }
 
-            /********************************************/
-            /* Verificando entrada do usuário (teclado) */
-            /********************************************/
+            // Verifica entrada do usuário (ESC para sair)
+            if (GameLib.iskeyPressed(GameLib.KEY_ESCAPE)) {
+                executando = false;
+            }
 
-            if(GameLib.iskeyPressed(GameLib.KEY_ESCAPE)) running = false;
-
-            /*******************/
-            /* Desenho da cena */
-            /*******************/
-
-            gameManager.desenhar();
-
-            /* chamada a display() da classe GameLib atualiza o desenho exibido pela interface do jogo. */
-
+            // Desenha a cena atual
+            gerenciador.desenhar();
             GameLib.display();
 
-            /* faz uma pausa de modo que cada execução do laço do main loop demore aproximadamente 3 ms. */
-
-            busyWait(currentTime + 3);
+            // Aguarda para manter loop com intervalo aproximado de 3ms
+            esperaAtiva(tempoAtual + 3);
         }
 
         System.exit(0);
