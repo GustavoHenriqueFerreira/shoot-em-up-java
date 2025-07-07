@@ -75,9 +75,3 @@ shoot-em-up-java/
 ├── config/               # Configurações das fases e jogador
 ├── README.md
 ```
-
----
-
-## 📝 Licença
-
-Este projeto é de código aberto, sob a licença MIT. Sinta-se à vontade para estudar, modificar e distribuir.
