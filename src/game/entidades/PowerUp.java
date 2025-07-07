@@ -1,4 +1,4 @@
-package game.entities;
+package game.entidades;
 import game.GameLib;
 
 public abstract class PowerUp extends Entidade {

@@ -1,4 +1,4 @@
-package game.entities;
+package game.entidades;
 import java.awt.Color;
 import java.util.ArrayList;
 import game.GameLib;
@@ -10,6 +10,7 @@ public abstract class Chefe extends Entidade {
     protected double velocidade;
     protected long proximoTiro;
     protected boolean entrou; // Se já entrou completamente na tela
+    protected boolean faseDoisAtivada; // Adicionado para controle de fases do chefe
 
     public Chefe(double x, double y, double raio, int pontosVida) {
         super(x, y, raio);
@@ -18,6 +19,7 @@ public abstract class Chefe extends Entidade {
         this.velocidade = 0.1;
         this.proximoTiro = 0;
         this.entrou = false;
+        this.faseDoisAtivada = false;
     }
 
     @Override
@@ -39,24 +41,17 @@ public abstract class Chefe extends Entidade {
     public void desenharBarraVida() {
         if (estado == ATIVA && entrou) {
             // Barra de fundo
-            GameLib.setColor(Color.RED);
-            GameLib.fillRect(GameLib.WIDTH / 2, 30, 200, 10);
+            GameLib.setColor(Color.DARK_GRAY);
+            GameLib.fillRect(coordenadaX, coordenadaY - raio - 20, raio * 2, 8);
 
             // Barra de vida atual
-            GameLib.setColor(Color.GREEN);
+            GameLib.setColor(Color.RED);
             double porcentagem = (double) pontosVida / pontosVidaMaximos;
-            GameLib.fillRect(GameLib.WIDTH / 2, 30, 200 * porcentagem, 10);
-
-            // Borda
-            GameLib.setColor(Color.WHITE);
-            GameLib.drawLine(GameLib.WIDTH / 2 - 100, 25, GameLib.WIDTH / 2 + 100, 25);
-            GameLib.drawLine(GameLib.WIDTH / 2 - 100, 35, GameLib.WIDTH / 2 + 100, 35);
-            GameLib.drawLine(GameLib.WIDTH / 2 - 100, 25, GameLib.WIDTH / 2 - 100, 35);
-            GameLib.drawLine(GameLib.WIDTH / 2 + 100, 25, GameLib.WIDTH / 2 + 100, 35);
+            GameLib.fillRect(coordenadaX, coordenadaY - raio - 20, raio * 2 * porcentagem, 8);
         }
     }
 
-    public abstract void atirar(long tempoAtual, ArrayList<ProjetilInimigo> projeteis);
+    public abstract void atirar(long tempoAtual, ArrayList<ProjetilInimigo> projeteis, Jogador jogador);
 
     protected boolean podeAtirar(long tempoAtual) {
         return estado == ATIVA && entrou && tempoAtual > proximoTiro;
@@ -72,5 +67,13 @@ public abstract class Chefe extends Entidade {
 
     public void setEntrou(boolean entrou) {
         this.entrou = entrou;
+    }
+
+    public boolean isFaseDoisAtivada() {
+        return faseDoisAtivada;
+    }
+
+    public void setFaseDoisAtivada(boolean faseDoisAtivada) {
+        this.faseDoisAtivada = faseDoisAtivada;
     }
 }

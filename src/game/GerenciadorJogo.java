@@ -1,6 +1,6 @@
 package game;
 
-import game.entities.*;
+import game.entidades.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.io.BufferedReader;
@@ -257,7 +257,7 @@ public class GerenciadorJogo {
 
         chefes.forEach(c -> {
             c.atualizar(delta, tempoAtual);
-            c.atirar(tempoAtual, projeteisDosInimigos);
+            c.atirar(tempoAtual, projeteisDosInimigos, jogador); // Passa o jogador para o método atirar do chefe
         });
     }
 

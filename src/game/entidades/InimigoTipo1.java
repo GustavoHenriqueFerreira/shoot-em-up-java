@@ -1,4 +1,4 @@
-package game.entities;
+package game.entidades;
 import java.awt.Color;
 import java.util.ArrayList;
 import game.GameLib;

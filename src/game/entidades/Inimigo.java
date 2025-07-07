@@ -1,4 +1,4 @@
-package game.entities;
+package game.entidades;
 import java.util.ArrayList;
 
 public abstract class Inimigo extends Entidade {

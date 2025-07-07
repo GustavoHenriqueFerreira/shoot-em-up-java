@@ -1,4 +1,4 @@
-10
+3
 2
 config/fase1.txt
 config/fase2.txt

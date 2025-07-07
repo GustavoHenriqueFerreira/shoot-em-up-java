@@ -22,7 +22,8 @@ public class ConfiguracaoFase {
     }
 
     public void adicionarChefe(int tipo, int pontosVida, long quando, double x, double y) {
-        eventosChefes.add(new EventoChefe(tipo, pontosVida, quando, x, y));
+        // Aumentando a vida dos chefes em 100% para maior dificuldade
+        eventosChefes.add(new EventoChefe(tipo, (int)(pontosVida * 2), quando, x, y));
     }
 
     public ArrayList<EventoInimigo> getEventosInimigos() {

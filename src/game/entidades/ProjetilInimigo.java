@@ -1,13 +1,13 @@
-package game.entities;
+package game.entidades;
 import java.awt.Color;
 import game.GameLib;
 
-public class ProjetilJogador extends Entidade {
+public class ProjetilInimigo extends Entidade {
 
-    private double velocidadeX;
-    private double velocidadeY;
+    protected double velocidadeX;
+    protected double velocidadeY;
 
-    public ProjetilJogador(double x, double y, double vx, double vy) {
+    public ProjetilInimigo(double x, double y, double vx, double vy) {
         super(x, y, 2.0);
         this.velocidadeX = vx;
         this.velocidadeY = vy;
@@ -30,10 +30,8 @@ public class ProjetilJogador extends Entidade {
     @Override
     public void desenhar() {
         if (estado == ATIVA) {
-            GameLib.setColor(Color.GREEN);
-            GameLib.drawLine(coordenadaX, coordenadaY - 5, coordenadaX, coordenadaY + 5);
-            GameLib.drawLine(coordenadaX - 1, coordenadaY - 3, coordenadaX - 1, coordenadaY + 3);
-            GameLib.drawLine(coordenadaX + 1, coordenadaY - 3, coordenadaX + 1, coordenadaY + 3);
+            GameLib.setColor(Color.RED);
+            GameLib.drawCircle(coordenadaX, coordenadaY, raio);
         }
     }
 }
