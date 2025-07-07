@@ -1,7 +1,7 @@
 package game.entidades;
 
 import java.awt.Color;
-import game.GameLib;
+import game.lib.GameLib;
 
 public class Fundo {
 

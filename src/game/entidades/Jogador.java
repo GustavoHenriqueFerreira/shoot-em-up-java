@@ -1,7 +1,9 @@
 package game.entidades;
 import java.awt.Color;
 import java.util.ArrayList;
-import game.GameLib;
+
+import game.entidades.Projetil.ProjetilJogador;
+import game.lib.GameLib;
 
 public class Jogador extends Entidade {
 

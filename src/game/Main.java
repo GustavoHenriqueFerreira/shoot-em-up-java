@@ -1,5 +1,8 @@
 package game;
 
+import game.gerenciador.GerenciadorJogo;
+import game.lib.GameLib;
+
 /**
 * Controles do jogo:
 *    - Cima, baixo, esquerda, direita: movimentação do jogador.
